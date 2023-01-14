@@ -1,0 +1,32 @@
+{
+  "name": "bmw-club-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "prepare": "husky install",
+    "build": "turbo run build",
+    "start": "turbo run start --parallel",
+    "start:prod": "turbo run start:prod --parallel",
+    "test:unit": "turbo run test:unit --parallel",
+    "test:coverage": "turbo run test:coverage --parallel",
+    "test:e2e": "turbo run test:e2e --parallel",
+    "test:deps": "syncpack list-mismatches",
+    "test:lint": "turbo run test:lint --parallel",
+    "test:format": "prettier --check \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.4.2",
+    "@commitlint/config-conventional": "^17.4.2",
+    "eslint-config-workspace": "workspace:*",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.0",
+    "prettier": "latest",
+    "syncpack": "latest",
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "packageManager": "pnpm@7.25.0"
+}

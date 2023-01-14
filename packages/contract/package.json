@@ -1,0 +1,18 @@
+{
+  "name": "contract",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs --dts",
+    "start": "pnpm run build --watch",
+    "test:lint": "eslint \"src/**/*.ts\""
+  },
+  "devDependencies": {
+    "tsconfig": "workspace:*",
+    "tsup": "^6.5.0",
+    "typescript": "^4.9.4"
+  }
+}

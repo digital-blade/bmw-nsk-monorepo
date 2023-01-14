@@ -1,0 +1,8 @@
+# testing
+coverage
+
+# build
+.next/
+out/
+dist/
+build
