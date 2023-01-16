@@ -1,0 +1,33 @@
+name: Continuous Integration
+run-name: 'Continuous Integration: ${{ GITHUB_REF }} by @${{ github.actor }}'
+
+on:
+  pull_request: [develop]
+
+jobs:
+  code-quality:
+    name: 'Code Quality'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test dependencies
+        run: pnpm test:deps
+
+      - name: Test ESLint
+        run: pnpm test:lint
+
+      - name: Test Prettier
+        run: pnpm test:format
