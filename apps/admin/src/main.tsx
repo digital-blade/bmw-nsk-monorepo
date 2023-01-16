@@ -7,6 +7,12 @@ import './index.css'
 
 const rootElement = document.getElementById('root')
 
+console.log()
+console.log()
+console.log()
+console.log()
+console.log()
+
 if (!rootElement) {
   throw new Error('Element div#root not found')
 }
