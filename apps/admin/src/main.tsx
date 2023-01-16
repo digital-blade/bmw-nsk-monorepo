@@ -16,3 +16,5 @@ createRoot(rootElement).render(
     <App />
   </StrictMode>
 )
+
+console.log('Я забытый лог')
