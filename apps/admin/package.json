@@ -7,7 +7,8 @@
     "build": "vite build",
     "start": "vite",
     "start:prod": "vite preview",
-    "test:lint": "eslint src"
+    "test:lint": "eslint src",
+    "test:lint-report": "pnpm test:lint -f json -o eslint-report.json"
   },
   "dependencies": {
     "react": "^18.2.0",

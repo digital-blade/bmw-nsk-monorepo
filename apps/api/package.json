@@ -10,7 +10,8 @@
     "test:unit": "jest --config jest.unit.ts",
     "test:coverage": "pnpm run test:unit --coverage",
     "test:e2e": "jest --config jest.e2e.ts",
-    "test:lint": "eslint \"{src,__e2e__}/**\""
+    "test:lint": "eslint \"{src,__e2e__}/**\"",
+    "test:lint-report": "pnpm test:lint -f json -o eslint-report.json"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",

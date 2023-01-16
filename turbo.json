@@ -2,34 +2,21 @@
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
     },
     "start": {
-      "dependsOn": [
-        "^start"
-      ],
+      "dependsOn": ["^start"],
       "cache": false
     },
     "start:prod": {
-      "outputs": []
+      "dependsOn": ["build"],
+      "outputs": ["dist/**", ".next/**"]
     },
-    "test:unit": {
-      "outputs": []
-    },
-    "test:coverage": {
-      "outputs": []
-    },
-    "test:e2e": {
-      "outputs": []
-    },
-    "test:lint": {
-      "outputs": []
-    }
+    "test:unit": {},
+    "test:coverage": {},
+    "test:e2e": {},
+    "test:lint": {},
+    "test:lint-report": {}
   }
 }

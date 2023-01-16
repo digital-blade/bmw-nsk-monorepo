@@ -8,11 +8,12 @@
     "build": "turbo run build",
     "start": "turbo run start --parallel",
     "start:prod": "turbo run start:prod --parallel",
-    "test:unit": "turbo run test:unit --parallel",
-    "test:coverage": "turbo run test:coverage --parallel",
-    "test:e2e": "turbo run test:e2e --parallel",
+    "test:unit": "turbo --filter=[origin/develop] --continue test:unit",
+    "test:coverage": "turbo --filter=[origin/develop] --continue test:coverage",
+    "test:e2e": "turbo --filter=[origin/develop] --continue test:e2e",
     "test:deps": "syncpack list-mismatches",
-    "test:lint": "turbo run test:lint --parallel",
+    "test:lint": "turbo --filter=[origin/develop] --continue test:lint",
+    "test:lint-report": "turbo --continue test:lint-report",
     "test:format": "prettier --check \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {

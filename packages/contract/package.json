@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs --dts",
     "start": "pnpm run build --watch",
-    "test:lint": "eslint \"src/**/*.ts\""
+    "test:lint": "eslint \"src/**/*.ts\"",
+    "test:lint-report": "pnpm test:lint -f json -o eslint-report.json"
   },
   "devDependencies": {
     "tsconfig": "workspace:*",

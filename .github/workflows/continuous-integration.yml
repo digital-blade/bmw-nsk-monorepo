@@ -1,0 +1,47 @@
+name: 'Continuous Integration'
+run-name: 'Continuous Integration: "${{ github.head_ref }}" by "@${{ github.actor }}"'
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  code-quality:
+    name: 'Code Quality'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 15
+
+      - name: 'Install pnpm'
+        uses: pnpm/action-setup@v2
+
+      - name: 'Install Node.js'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: pnpm
+
+      - name: 'Install dependencies'
+        run: pnpm install --frozen-lockfile
+
+      - name: 'Test dependencies'
+        run: pnpm test:deps
+
+      - name: 'Test Prettier'
+        run: pnpm test:format
+
+      - name: 'Test ESLint'
+        continue-on-error: true
+        run: pnpm turbo run --filter=[${{ github.event.pull_request.base.sha }}] test:lint-report
+
+      - name: 'Merge ESLint report'
+        run: find apps packages -name 'eslint-report.json' -exec cat {} + | jq -s '[.[]]|flatten' > eslint-report.json
+
+      - name: 'Annotate ESLint results'
+        uses: ataylorme/eslint-annotate-action@1.2.0
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          report-json: eslint-report.json
