@@ -35,7 +35,7 @@ jobs:
 
       - name: 'Test ESLint'
         continue-on-error: true
-        run: pnpm turbo run --filter=[${{ github.event.pull_request.base.sha }}] test:lint-report
+        run: pnpm turbo run --filter=[${{ github.event.pull_request.base.sha }}] test:lint-report --api=${{ vars.TURBOREPO_URL }} --team=${{ vars.TURBOREPO_TEAM }} --token=${{ secrets.TURBOREPO_TOKEN }}
 
       - name: 'Merge ESLint report'
         run: find apps packages -name 'eslint-report.json' -exec cat {} + | jq -s '[.[]]|flatten' > eslint-report.json
