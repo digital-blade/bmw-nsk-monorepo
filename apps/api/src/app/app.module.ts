@@ -1,16 +1,19 @@
 import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { PrismaModule } from 'nestjs-prisma'
 
-import { AppController } from './app.controller'
-import { AppService } from './app.service'
+import { DATABASE_CONFIG, databaseConfiguration } from './config/database'
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.local']
+      load: [databaseConfiguration]
+    }),
+    PrismaModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => config.get(DATABASE_CONFIG),
+      inject: [ConfigService]
     })
-  ],
-  controllers: [AppController],
-  providers: [AppService]
+  ]
 })
 export class AppModule {}
