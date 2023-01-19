@@ -9,7 +9,8 @@ createSchema({
   generator: [
     {
       name: 'client',
-      provider: 'prisma-client-js'
+      provider: 'prisma-client-js',
+      output: '../node_modules/.prisma/client'
     },
     {
       name: 'zod',

@@ -8,6 +8,7 @@
     "declaration": true,
     "declarationMap": true,
     "esModuleInterop": true,
+    "preserveSymlinks": true,
     "forceConsistentCasingInFileNames": true,
     "inlineSources": false,
     "isolatedModules": true,
