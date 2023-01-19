@@ -2,6 +2,8 @@
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Library",
   "compilerOptions": {
+    "target": "ES6",
+    "moduleResolution": "Node",
     "composite": false,
     "declaration": true,
     "declarationMap": true,
