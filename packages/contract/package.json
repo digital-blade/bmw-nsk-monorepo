@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "@ts-rest/core": "^3.12.0",
-    "database": "workspace:*",
+    "zod": "^3.20.2"
+  },
+  "peerDependencies": {
     "zod": "^3.20.2"
   }
 }

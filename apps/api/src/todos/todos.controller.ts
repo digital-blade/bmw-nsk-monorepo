@@ -1,12 +1,19 @@
 import { Controller } from '@nestjs/common'
+import { nestControllerContract, NestRequestShapes, NestResponseShapes, TsRest, TsRestRequest } from '@ts-rest/nest'
+import { todoApi } from 'contract'
 
 import { TodosService } from './todos.service'
 
-@Controller('todos')
+const c = nestControllerContract(todoApi)
+type RequestShapes = NestRequestShapes<typeof c>
+type ResponseShapes = NestResponseShapes<typeof c>
+
+@Controller()
 export class TodosController {
   constructor(private readonly todosService: TodosService) {}
 
-  create() {
-    return this.todosService.create()
+  @TsRest(c.addTodo)
+  create(@TsRestRequest() todo: RequestShapes['addTodo']['body']): Promise<ResponseShapes['addTodo']> {
+    return this.todosService.create(todo)
   }
 }

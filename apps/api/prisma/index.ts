@@ -11,11 +11,6 @@ createSchema({
       name: 'client',
       provider: 'prisma-client-js',
       output: '../node_modules/.prisma/client'
-    },
-    {
-      name: 'zod',
-      provider: 'prisma-zod-generator',
-      output: '../src/zod'
     }
   ]
 }).export(__dirname, 'schema')

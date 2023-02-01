@@ -1,5 +1,7 @@
 import { initContract } from '@ts-rest/core'
-import { TodoCreateOneSchema } from 'database'
+
+import { CreateOneTodoSchema } from './dto/create-one'
+import { TodoSchema } from './dto/todo'
 
 const c = initContract()
 
@@ -8,9 +10,9 @@ export const todoApi = c.router({
     method: 'POST',
     path: '/todos',
     responses: {
-      201: {}
+      201: TodoSchema
     },
-    body: TodoCreateOneSchema,
+    body: CreateOneTodoSchema,
     summary: 'Create TODO'
   }
 })

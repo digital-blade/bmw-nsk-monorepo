@@ -5,5 +5,7 @@ import { todoApi } from './todos'
 const c = initContract()
 
 export const contract = c.router({
-  todoApi
+  todo: todoApi
 })
+
+export { todoApi }
