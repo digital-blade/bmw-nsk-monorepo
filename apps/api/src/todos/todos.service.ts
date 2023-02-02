@@ -6,7 +6,21 @@ import { PrismaService } from 'nestjs-prisma'
 export class TodosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(todo: Prisma.TodoCreateInput): Promise<Todo> {
+  async create(todo: Prisma.TodoCreateInput): Promise<Todo> {
     return this.prisma.todo.create({ data: todo })
+  }
+
+  async getTodos(take: number, skip: number, search?: string) {
+    const todos = await this.prisma.todo.findMany({
+      take,
+      skip,
+      where: {
+        value: { contains: search }
+      }
+    })
+
+    const totalTodos = await this.prisma.todo.count()
+
+    return { todos, totalTodos }
   }
 }

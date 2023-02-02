@@ -9,8 +9,7 @@ createSchema({
   generator: [
     {
       name: 'client',
-      provider: 'prisma-client-js',
-      output: '../node_modules/.prisma/client'
+      provider: 'prisma-client-js'
     }
   ]
 }).export(__dirname, 'schema')

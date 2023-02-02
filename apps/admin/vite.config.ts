@@ -7,6 +7,14 @@ export default defineConfig({
   server: {
     port: 3000
   },
+  optimizeDeps: {
+    include: ['contract']
+  },
+  build: {
+    commonjsOptions: {
+      include: [/contract/, /node_modules/]
+    }
+  },
   plugins: [
     react(),
     tsconfigPaths({
