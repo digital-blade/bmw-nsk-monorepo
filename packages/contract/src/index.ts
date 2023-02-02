@@ -1,3 +1,11 @@
-export const contract = {
-  port: 3000
-}
+import { initContract } from '@ts-rest/core'
+
+import { todoApi } from './todos'
+
+const c = initContract()
+
+export const contract = c.router({
+  todo: todoApi
+})
+
+export { todoApi }

@@ -40,7 +40,6 @@ yarn.lock
 
 # ide
 .idea
-.env*
 .flaskenv*
 !.env.project
 !.env.vault

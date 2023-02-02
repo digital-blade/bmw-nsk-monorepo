@@ -1,17 +1,28 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
+    "api#generate": {
+      "outputs": ["prisma/schema.prisma"]
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
+    },
+    "api#build": {
+      "dependsOn": ["generate", "^build"],
+      "outputs": ["dist/**"]
     },
     "start": {
       "dependsOn": ["^start"],
       "cache": false
     },
+    "api#start": {
+      "dependsOn": ["generate", "^start"],
+      "cache": false
+    },
     "start:prod": {
       "dependsOn": ["build"],
-      "outputs": ["dist/**", ".next/**"]
+      "persistent": true
     },
     "test:unit": {},
     "test:coverage": {},

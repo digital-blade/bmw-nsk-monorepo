@@ -27,6 +27,9 @@ jobs:
       - name: 'Install dependencies'
         run: pnpm install --frozen-lockfile
 
+      - name: 'Build libraries'
+        run: pnpm turbo run --filter=./packages/* build --api=${{ vars.TURBOREPO_URL }} --team=${{ vars.TURBOREPO_TEAM }} --token=${{ secrets.TURBOREPO_TOKEN }}
+
       - name: 'Test dependencies'
         run: pnpm test:deps
 

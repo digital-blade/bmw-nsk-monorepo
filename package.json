@@ -14,7 +14,7 @@
     "test:deps": "syncpack list-mismatches",
     "test:lint": "turbo --filter=[origin/develop] --continue test:lint",
     "test:lint-report": "turbo --continue test:lint-report",
-    "test:format": "prettier --check \"**/*.{ts,tsx,md}\""
+    "test:format": "prettier --check \"**/*.{ts,tsx,md}\" --ignore-path .gitignore"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.4.2",
