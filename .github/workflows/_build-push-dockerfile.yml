@@ -1,0 +1,75 @@
+name: 'Build and push Dockerfile'
+
+on:
+  workflow_call:
+    inputs:
+      image-name:
+        type: string
+        required: true
+        description: 'Image name'
+      image-title:
+        type: string
+        required: true
+        description: 'Image title for opencontainers label'
+      image-description:
+        type: string
+        required: true
+        description: 'Image description for opencontainers label'
+      image-tag:
+        type: string
+        required: true
+        description: 'Image tag'
+    outputs:
+      image-digest:
+        description: 'Image with digest'
+        value: ${{ jobs.build-push.outputs.image-digest }}
+
+jobs:
+  build-push:
+    name: 'Build and push image'
+    runs-on: [ self-hosted ]
+    outputs:
+      image-digest: ${{ steps.build-push.outputs.digest }}
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ inputs.image-name }}
+          labels: |
+            org.opencontainers.image.title=${{ inputs.image-title }}
+            org.opencontainers.image.description=${{ inputs.image-description }}
+            org.opencontainers.image.vendor=Digital Blade
+            org.opencontainers.image.licenses=Unlicensed
+          tags: |
+            type=raw,value=${{ inputs.image-tag }}
+
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v2
+
+      - name: 'Login to registry'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ vars.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: 'Build and push'
+        uses: docker/build-push-action@v3.3.1
+        id: build-push
+        with:
+          context: .
+          file: ./apps/api/Dockerfile
+          push: true
+          build-args: |
+            TURBO_API=${{ vars.TURBO_API }}
+            TURBO_TEAM=${{ vars.TURBO_TEAM }}
+            TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ inputs.image-name }}:buildcache
+          cache-to: type=registry,ref=${{ inputs.image-name }}:buildcache,mode=max
