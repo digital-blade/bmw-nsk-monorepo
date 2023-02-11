@@ -33,9 +33,10 @@ jobs:
         uses: dkershner6/switch-case-action@v1
         id: get-environment-url
         with:
-          default: ${{ github.event.deployment.environment }}.bmw-nsk.ru
+          default: ${{ github.event.deployment.environment }}.dyn.bmw-nsk.ru
           conditionals-with-values: |
             ${{ github.event.deployment.environment == 'production' }} => bmw-nsk.ru
+            ${{ github.event.deployment.environment == 'test' }} => test.bmw-nsk.ru
 
       - name: 'Render docker-compose.yml'
         run: |
