@@ -21,8 +21,6 @@ jobs:
     name: 'Deploy preview environments'
 #    needs: [ tests ]
     runs-on: [ self-hosted ]
-    permissions:
-      deployments: write
     steps:
       - name: "Get environment name"
         uses: rlespinasse/slugify-value@v1.x

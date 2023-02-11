@@ -6,7 +6,9 @@ on:
     types: [ closed ]
 
 jobs:
-  prune:
+  cleanup:
+    name: 'Cleanup'
+    runs-on: [ self-hosted ]
     steps:
       - name: "Slugify branch"
         uses: rlespinasse/slugify-value@v1.x
