@@ -17,14 +17,14 @@ jobs:
 #      base-sha: ${{ github.event.pull_request.base.sha }}
 #    secrets: inherit
 
-  deploy-dynamic:
-    name: 'Deploy dynamic stands'
+  deploy-preview:
+    name: 'Deploy preview environments'
 #    needs: [ tests ]
     runs-on: [ self-hosted ]
     permissions:
       deployments: write
     steps:
-      - name: "Slugify branch"
+      - name: "Get environment name"
         uses: rlespinasse/slugify-value@v1.x
         with:
           key: BRANCH_NAME
