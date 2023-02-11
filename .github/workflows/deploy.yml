@@ -1,0 +1,66 @@
+name: 'Deploy'
+run-name: 'Deploy: "${{ github.event.deployment.ref }}"'
+
+on:
+  deployment
+
+concurrency:
+  group: ${{ github.event.deployment.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-push-api:
+    name: 'API'
+    uses: ./.github/workflows/_build-push-dockerfile.yml
+    with:
+      image-name: ${{ vars.DOCKER_REGISTRY }}/bmw-nsk/api
+      image-title: bmw-nsk-api
+      image-description: Image for bmw-nsk backend application
+      image-tag: ${{ github.event.deployment.environment }}
+    secrets: inherit
+
+  deploy:
+    name: 'Deploy to states repository'
+    needs: [ build-push-api ]
+    runs-on: [ self-hosted ]
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.deployment.ref }}
+
+      - name: 'Render docker-compose.yml'
+        run: |
+          SLUG=$(echo ${{ github.event.deployment.environment }}) && export SLUG
+          API_DIGEST=$(echo ${{ needs.build-push-api.outputs.image-digest }}) && export API_DIGEST
+          DATABASE_URL=$(echo postgresql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ vars.DATABASE_HOST }}/${{ needs.build-push-api.outputs.image-digest }}) && export DATABASE_URL
+          mkdir .templates/output
+          envsubst < .templates/docker-compose.yml > .templates/output/docker-compose.yml
+          cat .templates/output/docker-compose.yml
+
+      - name: 'Save deployment information'
+        run: |
+          echo ${{ github.event.deployment.id }} > .templates/output/deployment-id
+          echo ${{ github.event.deployment.environment }}.bmw-nsk.ru > .templates/output/deployment-url
+          echo ${{ github.event.deployment.environment }} > .templates/output/deployment-environment
+
+      - name: 'Get commit info'
+        id: commit-info
+        run: |
+          echo "commit-username=$(git log -1 --pretty=format:%an)" >> $GITHUB_OUTPUT
+          echo "commit-email=$(git log -1 --pretty=format:%ae)" >> $GITHUB_OUTPUT
+          echo "commit-message=$(git log -1 --format=%s)" >> $GITHUB_OUTPUT
+
+      - name: 'Copy template to states repository'
+        uses: digital-blade/github-action-push-to-another-repository@main
+        with:
+          source-directory: '.templates/output'
+          destination-github-username: 'digital-blade'
+          destination-repository-name: 'bmw-club-states'
+          create-target-branch: true
+          target-branch: ${{ github.event.deployment.ref }}
+          user-name: ${{ steps.commit-info.outputs.commit-username }}
+          user-email: ${{ steps.commit-info.outputs.commit-email }}
+          commit-message: ${{ steps.commit-info.outputs.commit-message }}
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.STATES_REPOSITORY_TOKEN }}
