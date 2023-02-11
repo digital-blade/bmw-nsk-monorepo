@@ -29,11 +29,21 @@ jobs:
         with:
           ref: ${{ github.event.deployment.ref }}
 
+      - name: 'Get environment url'
+        uses: dkershner6/switch-case-action@v1
+        id: get-environment-url
+        with:
+          default: ${{ github.event.deployment.environment }}.bmw-nsk.ru
+          conditionals-with-values: |
+            ${{ github.event.deployment.environment == 'production' }} => bmw-nsk.ru
+
       - name: 'Render docker-compose.yml'
         run: |
           SLUG=$(echo ${{ github.event.deployment.environment }}) && export SLUG
           API_DIGEST=$(echo ${{ needs.build-push-api.outputs.image-digest }}) && export API_DIGEST
+          API_URL=$(echo api.${{ steps.get-environment-url.outputs.value }}) && export API_URL
           DATABASE_URL=$(echo postgresql://${{ secrets.DATABASE_USER }}:${{ secrets.DATABASE_PASSWORD }}@${{ vars.DATABASE_HOST }}/${{ needs.build-push-api.outputs.image-digest }}) && export DATABASE_URL
+          ADMIN_URL=$(echo admin.${{ steps.get-environment-url.outputs.value }}) && export API_URL
           mkdir .templates/output
           envsubst < .templates/docker-compose.yml > .templates/output/docker-compose.yml
           cat .templates/output/docker-compose.yml
@@ -41,7 +51,7 @@ jobs:
       - name: 'Save deployment information'
         run: |
           echo ${{ github.event.deployment.id }} > .templates/output/deployment-id
-          echo ${{ github.event.deployment.environment }}.bmw-nsk.ru > .templates/output/deployment-url
+          echo https://${{ steps.get-environment-url.outputs.value }} > .templates/output/deployment-url
           echo ${{ github.event.deployment.environment }} > .templates/output/deployment-environment
 
       - name: 'Get commit info'

@@ -11,7 +11,7 @@ services:
       traefik.enable: true
       traefik.http.routers.bmw-nsk-api-${SLUG}.tls: true
       traefik.http.routers.bmw-nsk-api-${SLUG}.tls.certresolver: 'letsencrypt'
-      traefik.http.routers.bmw-nsk-api-${SLUG}.rule: 'Host(`api.${SLUG}.bmw-nsk.ru`)'
+      traefik.http.routers.bmw-nsk-api-${SLUG}.rule: 'Host(`${API_URL}`)'
       traefik.http.routers.bmw-nsk-api-${SLUG}.service: 'bmw-nsk-api-${SLUG}'
       traefik.http.services.bmw-nsk-api-${SLUG}.loadbalancer.server.port: 5000
 
