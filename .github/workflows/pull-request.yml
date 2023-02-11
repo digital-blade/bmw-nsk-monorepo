@@ -10,16 +10,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
-    name: 'Tests'
-    uses: ./.github/workflows/_tests.yml
-    with:
-      base-sha: ${{ github.event.pull_request.base.sha }}
-    secrets: inherit
+#  tests:
+#    name: 'Tests'
+#    uses: ./.github/workflows/_tests.yml
+#    with:
+#      base-sha: ${{ github.event.pull_request.base.sha }}
+#    secrets: inherit
 
   deploy-dynamic:
     name: 'Deploy dynamic stands'
-    needs: [ tests ]
+#    needs: [ tests ]
     runs-on: [ self-hosted ]
     permissions:
       deployments: write

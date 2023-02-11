@@ -1,0 +1,33 @@
+name: 'Cleanup pull request'
+run-name: 'Cleanup pull request: "${{ github.head_ref }}" by "${{ github.actor }}"'
+
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+  prune:
+    steps:
+      - name: "Slugify branch"
+        uses: rlespinasse/slugify-value@v1.x
+        with:
+          key: BRANCH_NAME
+          value: ${{ github.head_ref }}
+
+      - name: "Checkout states repository"
+        uses: actions/checkout@v3
+        with:
+          repository: digital-blade/bmw-club-states
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
+
+      - name: "Remove states branch"
+        run: git push origin --delete ${{ github.head_ref }}
+
+      - name: "Delete environment"
+        uses: bobheadxi/deployments@v1
+        with:
+          step: delete-env
+          token: ${{ secrets.MONOREPO_DEPLOY_TOKEN }}
+          env: ${{ env.BRANCH_NAME_SLUG_URL }}
+          desc: Environment was pruned
