@@ -1,14 +1,21 @@
-name: 'Continuous Integration'
-run-name: 'Continuous Integration: "${{ github.head_ref }}" by "@${{ github.actor }}"'
+name: 'Tests'
 
 on:
-  pull_request:
-    branches: [develop]
+  workflow_call:
+    inputs:
+      base-sha:
+        type: string
+        required: true
+
+env:
+  TURBO_API: ${{ vars.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
 
 jobs:
   code-quality:
-    name: 'Code Quality'
-    runs-on: ubuntu-latest
+    name: 'Code quality'
+    runs-on: [self-hosted]
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v3
@@ -28,7 +35,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: 'Build libraries'
-        run: pnpm turbo run --filter=./packages/* build --api=${{ vars.TURBOREPO_URL }} --team=${{ vars.TURBOREPO_TEAM }} --token=${{ secrets.TURBOREPO_TOKEN }}
+        run: pnpm turbo run --filter=./packages/* build
 
       - name: 'Test dependencies'
         run: pnpm test:deps
@@ -38,13 +45,13 @@ jobs:
 
       - name: 'Test ESLint'
         continue-on-error: true
-        run: pnpm turbo run --filter=[${{ github.event.pull_request.base.sha }}] test:lint-report --api=${{ vars.TURBOREPO_URL }} --team=${{ vars.TURBOREPO_TEAM }} --token=${{ secrets.TURBOREPO_TOKEN }}
+        run: pnpm turbo run --filter=[${{ inputs.base-sha }}] test:lint-report
 
       - name: 'Merge ESLint report'
         run: find apps packages -name 'eslint-report.json' -exec cat {} + | jq -s '[.[]]|flatten' > eslint-report.json
 
       - name: 'Annotate ESLint results'
-        uses: ataylorme/eslint-annotate-action@1.2.0
+        uses: ataylorme/eslint-annotate-action@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           report-json: eslint-report.json

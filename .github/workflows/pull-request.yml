@@ -1,0 +1,41 @@
+name: 'Pull request'
+run-name: 'Pull request: "${{ github.head_ref }}" by "${{ github.actor }}"'
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+concurrency:
+  group: ${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: 'Tests'
+    uses: ./.github/workflows/_tests.yml
+    with:
+      base-sha: ${{ github.event.pull_request.base.sha }}
+    secrets: inherit
+
+  deploy-dynamic:
+    name: 'Deploy dynamic stands'
+    needs: [ tests ]
+    runs-on: [ self-hosted ]
+    permissions:
+      deployments: write
+    steps:
+      - name: "Slugify branch"
+        uses: rlespinasse/slugify-value@v1.x
+        with:
+          key: BRANCH_NAME
+          value: ${{ github.head_ref }}
+
+      - uses: bobheadxi/deployments@v1
+        name: "Create GitHub deployment"
+        id: deployment
+        with:
+          step: start
+          override: true
+          token: ${{ secrets.MONOREPO_DEPLOY_TOKEN }}
+          env: ${{ env.BRANCH_NAME_SLUG_URL }}
+          ref: ${{ github.head_ref }}
