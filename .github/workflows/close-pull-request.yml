@@ -5,6 +5,13 @@ on:
   pull_request:
     types: [ closed ]
 
+concurrency:
+  group: deploy-${{ github.event.deployment.ref }}
+  cancel-in-progress: true
+
+permissions:
+  deployments: write
+
 jobs:
   cleanup:
     name: 'Cleanup'
@@ -30,6 +37,6 @@ jobs:
         uses: bobheadxi/deployments@v1
         with:
           step: delete-env
-          token: ${{ secrets.MONOREPO_DEPLOY_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           env: ${{ env.BRANCH_NAME_SLUG_URL }}
           desc: Environment was pruned
