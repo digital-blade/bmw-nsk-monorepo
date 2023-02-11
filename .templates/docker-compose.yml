@@ -1,0 +1,40 @@
+services:
+  api:
+    image: registry.bmw-nsk.ru/bmw-nsk/api@${API_DIGEST}
+    container_name: 'bmw-nsk-api-${SLUG}'
+    restart: unless-stopped
+    networks: [traefik, postgres]
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DATABASE_URL=${DATABASE_URL}
+    labels:
+      org.label-schema.group: 'bmw-nsk-${SLUG}'
+      traefik.enable: true
+      traefik.http.routers.bmw-nsk-api-${SLUG}.tls: true
+      traefik.http.routers.bmw-nsk-api-${SLUG}.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.bmw-nsk-api-${SLUG}.rule: 'Host(`${API_URL}`)'
+      traefik.http.routers.bmw-nsk-api-${SLUG}.service: 'bmw-nsk-api-${SLUG}'
+      traefik.http.services.bmw-nsk-api-${SLUG}.loadbalancer.server.port: 5000
+
+  admin:
+    image: decentralize/caching-proxy
+    container_name: 'bmw-nsk-admin-${SLUG}'
+    restart: unless-stopped
+    environment:
+      - UPSTREAM=https://bmw-nsk-admin-builds.s3.bmw-nsk.ru/${SLUG}/
+      - MAX_SIZE=500m
+      - PROXY_READ_TIMEOUT=5s
+    labels:
+      org.label-schema.group: 'bmw-nsk-${SLUG}'
+      traefik.enable: true
+      traefik.http.routers.bmw-nsk-admin-${SLUG}.tls: true
+      traefik.http.routers.bmw-nsk-admin-${SLUG}.tls.certresolver: 'letsencrypt'
+      traefik.http.routers.bmw-nsk-admin-${SLUG}.rule: 'Host(`${ADMIN_URL}`)'
+      traefik.http.routers.bmw-nsk-admin-${SLUG}.service: 'bmw-nsk-admin-${SLUG}'
+      traefik.http.services.bmw-nsk-admin-${SLUG}.loadbalancer.server.port: "80"
+
+networks:
+  traefik:
+    external: true
+  postgres:
+    external: true
