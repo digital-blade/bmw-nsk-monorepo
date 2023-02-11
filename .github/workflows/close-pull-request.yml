@@ -32,8 +32,11 @@ jobs:
       - name: "Remove states branch"
         run: git push origin --delete ${{ github.head_ref }}
 
+      # It deletes environments, but throws an error
+      # https://github.com/bobheadxi/deployments/issues/135
       - name: "Delete environment"
         uses: bobheadxi/deployments@v1
+        continue-on-error: true
         with:
           step: delete-env
           token: ${{ secrets.GITHUB_TOKEN }}
