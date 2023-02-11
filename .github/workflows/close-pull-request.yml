@@ -5,17 +5,19 @@ on:
   pull_request:
     types: [ closed ]
 
-concurrency:
-  group: deploy-${{ github.head_ref }}
-
-permissions:
-  deployments: write
-
 jobs:
   cleanup:
     name: 'Cleanup'
     runs-on: [ self-hosted ]
     steps:
+      - name: "Wait Deployment complete"
+        uses: lewagon/wait-on-check-action@v1.2.0
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          running-workflow-name: 'Deploy'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
       - name: "Slugify branch"
         uses: rlespinasse/slugify-value@v1.x
         with:
@@ -39,6 +41,6 @@ jobs:
         continue-on-error: true
         with:
           step: delete-env
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MONOREPO_DEPLOY_TOKEN }}
           env: ${{ env.BRANCH_NAME_SLUG_URL }}
           desc: Environment was pruned
