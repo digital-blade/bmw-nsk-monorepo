@@ -5,7 +5,7 @@ on:
   deployment
 
 concurrency:
-  group: ${{ github.event.deployment.ref }}
+  group: ${{ github.workflow }}-${{ github.event.deployment.ref }}
   cancel-in-progress: true
 
 jobs:
