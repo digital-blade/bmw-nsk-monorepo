@@ -57,6 +57,6 @@ COPY --from=builder /app/apps/api/prisma/seed.js ./apps/api/prisma/seed.js
 # Copy contract artifacts
 COPY --from=builder /app/packages/contract/dist ./packages/contract/dist
 
-RUN pnpm i --prod --ignore-scripts --filter=api
+RUN pnpm i --prod --ignore-scripts --filter=api && cd apps/api && pnpm prisma generate
 
-CMD cd apps/api && pnpm prisma generate && pnpm start:prod
+CMD cd apps/api && pnpm start:prod
