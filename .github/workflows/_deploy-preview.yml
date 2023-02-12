@@ -17,9 +17,10 @@ jobs:
     needs: [ build-push-api ]
     runs-on: self-hosted
     outputs:
-      api-url: env.API_URL
-      admin-url: env.ADMIN_URL
-      branch-name: env.SLUG
+      slug: ${{ steps.output.outputs.slug }}
+      api-url: ${{ steps.output.outputs.api-url }}
+      admin-url: ${{ steps.output.outputs.admin-url }}
+      public-url: ${{ steps.output.outputs.public-url }}
     steps:
       - name: 'Prepare $SLUG variable'
         run: echo "SLUG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
@@ -30,12 +31,15 @@ jobs:
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
           
+          echo "NODE_ENV=dynamic" >> $GITHUB_ENV
+          
           echo "API_IMAGE=${{ needs.build-push-api.outputs.image }}" >> $GITHUB_ENV
           echo "API_URL=api.$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
-          echo "NODE_ENV=dynamic" >> $GITHUB_ENV
           
           echo "ADMIN_URL=admin.$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
           echo "ADMIN_S3_URL=https://admin-dist.s3.bmw-nsk.ru/$SLUG/" >> $GITHUB_ENV
+          
+          echo "PUBLIC_URL=$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
 
       - name: 'Determine branch to checkout'
         id: get-ref
@@ -76,13 +80,49 @@ jobs:
           github_token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
           branch: ${{ env.SLUG }}
 
+      - name: 'Output'
+        id: output
+        run: |
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "api-url=$API_URL" >> $GITHUB_OUTPUT
+          echo "admin-url=$ADMIN_URL" >> $GITHUB_OUTPUT
+          echo "public-url=$PUBLIC_URL" >> $GITHUB_OUTPUT
+          
+          echo "::group::Slug"
+          echo $SLUG
+          echo "::endgroup::"
+          
+          echo "::group::API URL"
+          echo $API_URL
+          echo "::endgroup::"
+          
+          echo "::group::Admin URL"
+          echo $ADMIN_URL
+          echo "::endgroup::"
+          
+          echo "::group::Public URL"
+          echo $PUBLIC_URL
+          echo "::endgroup::"
+
   create-portainer-stack:
     name: 'Create Portainer stack'
     needs: [ update-states-repository ]
     runs-on: self-hosted
     steps:
-      - name: "Debug outputs from previous step"
+      - name: 'Debug outputs from previous step'
         run: |
-          echo BRANCH_NAME=${{ needs.update-states-repository.outputs.branch-name }}
-          echo API_URL=${{ needs.update-states-repository.outputs.api-url }}
-          echo ADMIN_URL=${{ needs.update-states-repository.outputs.admin-url }}
+          echo "::group::Slug"
+          echo ${{ needs.update-states-repository.outputs.slug }}
+          echo "::endgroup::"
+          
+          echo "::group::API URL"
+          echo ${{ needs.update-states-repository.outputs.api-url }}
+          echo "::endgroup::"
+          
+          echo "::group::Admin URL"
+          echo ${{ needs.update-states-repository.outputs.admin-url }}
+          echo "::endgroup::"
+          
+          echo "::group::Public URL"
+          echo ${{ needs.update-states-repository.outputs.public-url }}
+          echo "::endgroup::"
