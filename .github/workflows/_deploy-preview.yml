@@ -4,24 +4,25 @@ on:
   workflow_call:
 
 jobs:
-  #  build-push-api:
-  #    name: 'Build and push "API"'
-  #    uses: ./.github/workflows/_build-push-dockerfile.yml
-  #    with:
-  #      image-name: bmw-nsk/api
-  #      image-tag: pr-${{ github.event.pull_request.number }}
-  #      dockerfile: apps/api/Dockerfile
-  #    secrets: inherit
+  build-push-api:
+    name: 'Prepare "API" image'
+    uses: ./.github/workflows/_build-push-dockerfile.yml
+    with:
+      image-name: bmw-nsk/api
+      image-tag: pr-${{ github.event.pull_request.number }}
+      dockerfile: apps/api/Dockerfile
+    secrets: inherit
 
   update-states-repository:
-    name: 'Notify "bmw-club-states"'
-    #    needs: [ build-push-api ]
+    name: 'Notify "bmw-nsk-states"'
+    needs: [ build-push-api ]
     runs-on: self-hosted
     steps:
+      - name: 'Prepare $SLUG variable'
+        run: echo "SLUG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
       - name: 'Prepare environment variables'
         run: |
-          echo "SLUG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
-          
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
@@ -30,14 +31,16 @@ jobs:
           echo "API_URL=api.$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
           echo "NODE_ENV=dynamic" >> $GITHUB_ENV
           
+          echo "ADMIN_URL=admin.$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
           echo "ADMIN_S3_URL=https://admin-dist.s3.bmw-nsk.ru/$SLUG/" >> $GITHUB_ENV
 
-      - name: "Print all environment variables"
-        run: |
-          echo ADMIN_S3_URL=$ADMIN_S3_URL
-          echo POSTGRES_USER=$POSTGRES_USER
+      - name: 'Checkout "bmw-nsk-states"'
+        uses: actions/checkout@v3
+        with:
+          repository: digital-blade/bmw-nsk-states
+          token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
 
-#      - name: 'Checkout'
-#        uses: actions/checkout@v3
-#        with:
-#          ref: ${{ github.event.deployment.ref }}
+      - name: 'Render docker-compose.yml'
+        run: |
+          envsubst < .template/docker-compose.yml > docker-compose.yml
+          cat docker-compose.yml

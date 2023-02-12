@@ -19,7 +19,7 @@ on:
 
 jobs:
   build-push:
-    name: 'Build and push image'
+    name: 'Build and push "${{ vars.DOCKER_REGISTRY }}/${{ inputs.image-name }}"'
     runs-on: [ self-hosted ]
     outputs:
       image: ${{ steps.image-name.outputs.value }}@sha256:${{ steps.build-push.outputs.digest }}
