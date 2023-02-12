@@ -5,7 +5,6 @@ on:
 
 jobs:
   build-push-api:
-    name: 'Prepare "API" image'
     uses: ./.github/workflows/_build-push-dockerfile.yml
     with:
       image-name: bmw-nsk/api
@@ -39,8 +38,23 @@ jobs:
         with:
           repository: digital-blade/bmw-nsk-states
           token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
+          fetch-depth: 0
 
       - name: 'Render docker-compose.yml'
         run: |
           envsubst < .template/docker-compose.yml > docker-compose.yml
           cat docker-compose.yml
+
+      - name: 'Commit docker-compose.yml'
+        run: |
+          git config --local user.email "deployment-bot@users.noreply.github.com"
+          git config --local user.name "deployment-bot"
+          git add .
+          git commit -m "[deployment] Promoting $SLUG to ${{ github.sha }}"
+
+      - name: 'Push "bmw-nsk-states"'
+        uses: ad-m/github-push-action@master
+        with:
+          repository: digital-blade/bmw-nsk-states
+          github_token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
+          branch: ${{ env.SLUG }}

@@ -18,7 +18,7 @@ on:
         value: ${{ jobs.build-push.outputs.image }}
 
 jobs:
-  build-push:
+  build-push-dockerfile:
     name: 'Build and push "${{ vars.DOCKER_REGISTRY }}/${{ inputs.image-name }}"'
     runs-on: [ self-hosted ]
     outputs:
