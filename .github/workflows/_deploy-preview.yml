@@ -37,9 +37,19 @@ jobs:
           echo "ADMIN_URL=admin.$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
           echo "ADMIN_S3_URL=https://admin-dist.s3.bmw-nsk.ru/$SLUG/" >> $GITHUB_ENV
 
+      - name: 'Determine branch to checkout'
+        id: get-ref
+        run: |
+          if [ ${{ github.event.action }} = "synchronize" ]; then
+            echo "ref=$SLUG" >> $GITHUB_OUTPUT
+          elif [ ${{ github.ref }} = "refs/heads/staging" ]; then
+            echo "ref=''" >> $GITHUB_OUTPUT
+          fi
+
       - name: 'Checkout "bmw-nsk-states"'
         uses: actions/checkout@v3
         with:
+          ref: ${{ steps.get-ref.outputs.ref }}
           repository: digital-blade/bmw-nsk-states
           token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
           fetch-depth: 0
@@ -50,6 +60,8 @@ jobs:
           cat docker-compose.yml
 
       - name: 'Commit docker-compose.yml'
+        id: commit
+        continue-on-error: true
         run: |
           git config --local user.email "deployment-bot@users.noreply.github.com"
           git config --local user.name "deployment-bot"
@@ -57,6 +69,7 @@ jobs:
           git commit -m "[deployment] Promoting $SLUG to ${{ github.sha }}"
 
       - name: 'Push "bmw-nsk-states"'
+        if: steps.commit.outcome == 'success'
         uses: ad-m/github-push-action@master
         with:
           repository: digital-blade/bmw-nsk-states

@@ -15,14 +15,14 @@ on:
     outputs:
       image:
         description: 'Image with digest'
-        value: ${{ jobs.build-push.outputs.image }}
+        value: ${{ jobs.build-push-dockerfile.outputs.image }}
 
 jobs:
   build-push-dockerfile:
     name: 'Build and push "${{ vars.DOCKER_REGISTRY }}/${{ inputs.image-name }}"'
     runs-on: [ self-hosted ]
     outputs:
-      image: ${{ steps.image-name.outputs.value }}@sha256:${{ steps.build-push.outputs.digest }}
+      image: ${{ steps.output.outputs.value }}
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v3
@@ -64,3 +64,12 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=registry,ref=${{ steps.image-name.outputs.value }}:buildcache
           cache-to: type=registry,ref=${{ steps.image-name.outputs.value }}:buildcache,mode=max
+
+      - name: 'Output'
+        id: output
+        run: |
+          IMAGE=${{ steps.image-name.outputs.value }}@sha256:${{ steps.build-push.outputs.digest }}
+          echo "value=$IMAGE" >> $GITHUB_OUTPUT
+          echo "::group::image"
+          echo $IMAGE
+          echo "::endgroup::"
