@@ -125,5 +125,5 @@ jobs:
                   "AutoUpdate": {
                     "Interval": "2m"
                   }
-                }' -fSsi 'https://portainer.bmw-nsk.ru/api/stacks?type=2&method=repository&enpointId=2'
+                }' -fSsi 'https://portainer.bmw-nsk.ru/api/stacks?type=2&method=repository&endpointId=2'
 
