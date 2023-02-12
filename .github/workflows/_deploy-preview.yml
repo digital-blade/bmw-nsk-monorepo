@@ -41,19 +41,9 @@ jobs:
           
           echo "PUBLIC_URL=$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
 
-      - name: 'Determine branch to checkout'
-        id: get-ref
-        run: |
-          if [ ${{ github.event.action }} = "synchronize" ]; then
-            echo "ref=$SLUG" >> $GITHUB_OUTPUT
-          elif [ ${{ github.ref }} = "refs/heads/staging" ]; then
-            echo "ref=''" >> $GITHUB_OUTPUT
-          fi
-
       - name: 'Checkout "bmw-nsk-states"'
         uses: actions/checkout@v3
         with:
-          ref: ${{ steps.get-ref.outputs.ref }}
           repository: digital-blade/bmw-nsk-states
           token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
           fetch-depth: 0
@@ -69,6 +59,7 @@ jobs:
         run: |
           git config --local user.email "deployment-bot@users.noreply.github.com"
           git config --local user.name "deployment-bot"
+          git checkout -B $SLUG
           git add .
           git commit -m "[deployment] Promoting $SLUG to ${{ github.sha }}"
 
