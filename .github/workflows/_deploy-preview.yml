@@ -104,25 +104,25 @@ jobs:
           echo $PUBLIC_URL
           echo "::endgroup::"
 
-  create-portainer-stack:
-    name: 'Create Portainer stack'
+  create-stack:
+    name: 'Create stack'
     needs: [ update-states-repository ]
     runs-on: self-hosted
     steps:
-      - name: 'Debug outputs from previous step'
+      - name: 'Curl Portainer'
         run: |
-          echo "::group::Slug"
-          echo ${{ needs.update-states-repository.outputs.slug }}
-          echo "::endgroup::"
-          
-          echo "::group::API URL"
-          echo ${{ needs.update-states-repository.outputs.api-url }}
-          echo "::endgroup::"
-          
-          echo "::group::Admin URL"
-          echo ${{ needs.update-states-repository.outputs.admin-url }}
-          echo "::endgroup::"
-          
-          echo "::group::Public URL"
-          echo ${{ needs.update-states-repository.outputs.public-url }}
-          echo "::endgroup::"
+          curl -XPOST \
+          -H 'X-API-Key: ${{ secrets.PORTAINER_TOKEN }}' \
+          -H "Content-type: application/json" \
+          -d '{
+                "Name": "bmw-club-${{ needs.update-states-repository.outputs.slug }}",
+                "RepositoryURL": "https://github.com/digital-blade/bmw-nsk-states",
+                "RepositoryReferenceName": "refs/heads/${{ needs.update-states-repository.outputs.slug }}",
+                "ComposeFile": "docker-compose.yml",
+                "RepositoryAuthentication": true,
+                "RepositoryUsername": "evist0",
+                "RepositoryPassword": "${{ secrets.STATES_REPOSITORY_TOKEN }}",
+                "AutoUpdate": {
+                  "Interval": "2m"
+                }
+              }' 'https://portainer.bmw-nsk.ru/api/stacks?type=2&method=repository&enpointId=2'
