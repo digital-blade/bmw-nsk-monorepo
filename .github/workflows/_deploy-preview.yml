@@ -31,7 +31,7 @@ jobs:
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
           
-          echo "NODE_ENV=dynamic" >> $GITHUB_ENV
+          echo "NODE_ENV=preview" >> $GITHUB_ENV
           
           echo "API_IMAGE=${{ needs.build-push-api.outputs.image }}" >> $GITHUB_ENV
           echo "API_URL=api.$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
