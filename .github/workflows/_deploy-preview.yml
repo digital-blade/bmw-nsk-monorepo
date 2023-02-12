@@ -46,7 +46,7 @@ jobs:
         run: |
           if [ ${{ github.event.action }} = "synchronize" ]; then
             echo "ref=$SLUG" >> $GITHUB_OUTPUT
-          elif [ ${{ github.ref }} = "refs/heads/staging" ]; then
+          else
             echo "ref=''" >> $GITHUB_OUTPUT
           fi
 
@@ -126,4 +126,3 @@ jobs:
                     "Interval": "2m"
                   }
                 }' -fSsi 'https://portainer.bmw-nsk.ru/api/stacks?type=2&method=repository&endpointId=2'
-

@@ -68,7 +68,7 @@ jobs:
       - name: 'Output'
         id: output
         run: |
-          IMAGE=${{ steps.image-name.outputs.value }}@sha256:${{ steps.build-push.outputs.digest }}
+          IMAGE=${{ steps.image-name.outputs.value }}@${{ steps.build-push.outputs.digest }}
           echo "value=$IMAGE" >> $GITHUB_OUTPUT
           echo "::group::image"
           echo $IMAGE
