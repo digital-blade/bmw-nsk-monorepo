@@ -34,12 +34,12 @@ jobs:
           echo "NODE_ENV=dynamic" >> $GITHUB_ENV
           
           echo "API_IMAGE=${{ needs.build-push-api.outputs.image }}" >> $GITHUB_ENV
-          echo "API_URL=api.$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
+          echo "API_URL=api.$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
           
-          echo "ADMIN_URL=admin.$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
+          echo "ADMIN_URL=admin.$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
           echo "ADMIN_S3_URL=https://admin-dist.s3.bmw-nsk.ru/$SLUG/" >> $GITHUB_ENV
           
-          echo "PUBLIC_URL=$SLUG.bmw-nsk.ru" >> $GITHUB_ENV
+          echo "PUBLIC_URL=$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
 
       - name: 'Determine branch to checkout'
         id: get-ref
@@ -107,6 +107,7 @@ jobs:
   create-stack:
     name: 'Create stack'
     needs: [ update-states-repository ]
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
     runs-on: self-hosted
     steps:
       - name: 'Curl Portainer'
