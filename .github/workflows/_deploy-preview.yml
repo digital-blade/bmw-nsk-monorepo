@@ -16,6 +16,10 @@ jobs:
     name: 'Notify "bmw-nsk-states"'
     needs: [ build-push-api ]
     runs-on: self-hosted
+    outputs:
+      api-url: env.API_URL
+      admin-url: env.ADMIN_URL
+      branch-name: env.SLUG
     steps:
       - name: 'Prepare $SLUG variable'
         run: echo "SLUG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
@@ -58,3 +62,14 @@ jobs:
           repository: digital-blade/bmw-nsk-states
           github_token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
           branch: ${{ env.SLUG }}
+
+  create-portainer-stack:
+    name: 'Create Portainer stack'
+    needs: [ update-states-repository ]
+    runs-on: self-hosted
+    steps:
+      - name: "Debug outputs from previous step"
+        run: |
+          echo BRANCH_NAME=${{ needs.update-states-repository.outputs.branch-name }}
+          echo API_URL=${{ needs.update-states-repository.outputs.api-url }}
+          echo ADMIN_URL=${{ needs.update-states-repository.outputs.admin-url }}
