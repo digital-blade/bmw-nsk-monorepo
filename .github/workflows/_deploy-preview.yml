@@ -14,7 +14,7 @@ jobs:
 
   update-states-repository:
     name: 'Notify "bmw-nsk-states"'
-    needs: [ build-push-api ]
+    needs: [build-push-api]
     runs-on: self-hosted
     outputs:
       slug: ${{ steps.output.outputs.slug }}
@@ -30,33 +30,22 @@ jobs:
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
-          
+
           echo "NODE_ENV=preview" >> $GITHUB_ENV
-          
+
           echo "API_IMAGE=${{ needs.build-push-api.outputs.image }}" >> $GITHUB_ENV
           echo "API_URL=api.$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
-          
+
           echo "ADMIN_URL=admin.$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
           echo "ADMIN_S3_URL=https://admin-dist.s3.bmw-nsk.ru/$SLUG/" >> $GITHUB_ENV
-          
+
           echo "PUBLIC_URL=$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
 
-      - name: 'Determine branch to checkout'
-        id: get-ref
-        run: |
-          if [ ${{ github.event.action }} = "synchronize" ]; then
-            echo "ref=$SLUG" >> $GITHUB_OUTPUT
-          else
-            echo "ref=''" >> $GITHUB_OUTPUT
-          fi
+      - name: 'Clone "bmw-nsk-states"'
+        run: git clone https://oauth2:${{ secrets.STATES_REPOSITORY_TOKEN }}@github.com/digital-blade/bmw-nsk-states
 
-      - name: 'Checkout "bmw-nsk-states"'
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ steps.get-ref.outputs.ref }}
-          repository: digital-blade/bmw-nsk-states
-          token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
-          fetch-depth: 0
+      - name: 'Checkout branch'
+        run: git checkout $SLUG || git checkout -b $SLUG
 
       - name: 'Render docker-compose.yml'
         run: |
@@ -87,26 +76,26 @@ jobs:
           echo "api-url=$API_URL" >> $GITHUB_OUTPUT
           echo "admin-url=$ADMIN_URL" >> $GITHUB_OUTPUT
           echo "public-url=$PUBLIC_URL" >> $GITHUB_OUTPUT
-          
+
           echo "::group::Slug"
           echo $SLUG
           echo "::endgroup::"
-          
+
           echo "::group::API URL"
           echo $API_URL
           echo "::endgroup::"
-          
+
           echo "::group::Admin URL"
           echo $ADMIN_URL
           echo "::endgroup::"
-          
+
           echo "::group::Public URL"
           echo $PUBLIC_URL
           echo "::endgroup::"
 
   create-stack:
     name: 'Create stack'
-    needs: [ update-states-repository ]
+    needs: [update-states-repository]
     if: github.event.action == 'opened' || github.event.action == 'reopened'
     runs-on: self-hosted
     steps:
