@@ -1,0 +1,75 @@
+name: 'Build and push Dockerfile'
+
+on:
+  workflow_call:
+    inputs:
+      image-name:
+        type: string
+        required: true
+      image-tag:
+        type: string
+        required: true
+      dockerfile:
+        type: string
+        required: true
+    outputs:
+      image:
+        description: 'Image with digest'
+        value: ${{ jobs.build-push-dockerfile.outputs.image }}
+
+jobs:
+  build-push-dockerfile:
+    name: 'Build and push "${{ vars.DOCKER_REGISTRY }}/${{ inputs.image-name }}"'
+    runs-on: [ self-hosted ]
+    outputs:
+      image: ${{ steps.output.outputs.value }}
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+
+      - name: 'Image name'
+        id: image-name
+        run: echo "value=${{ vars.DOCKER_REGISTRY }}/${{ inputs.image-name }}" >> $GITHUB_OUTPUT
+
+      - name: 'Docker meta'
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ steps.image-name.outputs.value }}
+          tags: type=raw,value=${{ inputs.image-tag }}
+
+      - name: 'Set up Docker Buildx'
+        uses: docker/setup-buildx-action@v2
+
+      - name: 'Login to registry'
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ vars.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 'Build and push'
+        uses: docker/build-push-action@v3.3.1
+        id: build-push
+        with:
+          context: .
+          file: ${{ inputs.dockerfile }}
+          push: true
+          build-args: |
+            TURBO_API=${{ vars.TURBO_API }}
+            TURBO_TEAM=${{ vars.TURBO_TEAM }}
+            TURBO_TOKEN=${{ secrets.TURBO_TOKEN }}
+            TURBO_REMOTE_ONLY=true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ steps.image-name.outputs.value }}:buildcache
+          cache-to: type=registry,ref=${{ steps.image-name.outputs.value }}:buildcache,mode=max
+
+      - name: 'Output'
+        id: output
+        run: |
+          IMAGE=${{ steps.image-name.outputs.value }}@${{ steps.build-push.outputs.digest }}
+          echo "value=$IMAGE" >> $GITHUB_OUTPUT
+          echo "::group::image"
+          echo $IMAGE
+          echo "::endgroup::"

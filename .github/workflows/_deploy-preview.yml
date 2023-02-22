@@ -1,0 +1,122 @@
+name: 'Deploy preview'
+
+on:
+  workflow_call:
+
+jobs:
+  build-push-api:
+    uses: ./.github/workflows/_build-push-dockerfile.yml
+    with:
+      image-name: bmw-nsk/api
+      image-tag: pr-${{ github.event.pull_request.number }}
+      dockerfile: apps/api/Dockerfile
+    secrets: inherit
+
+  update-states-repository:
+    name: 'Notify "bmw-nsk-states"'
+    needs: [build-push-api]
+    runs-on: self-hosted
+    outputs:
+      slug: ${{ steps.output.outputs.slug }}
+      api-url: ${{ steps.output.outputs.api-url }}
+      admin-url: ${{ steps.output.outputs.admin-url }}
+      public-url: ${{ steps.output.outputs.public-url }}
+    steps:
+      - name: 'Prepare $SLUG variable'
+        run: echo "SLUG=pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
+      - name: 'Prepare environment variables'
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
+
+          echo "NODE_ENV=preview" >> $GITHUB_ENV
+
+          echo "API_IMAGE=${{ needs.build-push-api.outputs.image }}" >> $GITHUB_ENV
+          echo "API_URL=api.$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
+
+          echo "ADMIN_URL=admin.$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
+          echo "ADMIN_S3_URL=https://admin-dist.s3.bmw-nsk.ru/$SLUG/" >> $GITHUB_ENV
+
+          echo "PUBLIC_URL=$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
+
+      - name: 'Checkout "bmw-nsk-states"'
+        uses: actions/checkout@v3
+        with:
+          repository: digital-blade/bmw-nsk-states
+          token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
+          fetch-depth: 0
+
+      - name: 'Checkout branch'
+        run: git checkout $SLUG || git checkout -b $SLUG
+
+      - name: 'Render docker-compose.yml'
+        run: |
+          envsubst < .template/docker-compose.yml > docker-compose.yml
+          cat docker-compose.yml
+
+      - name: 'Commit docker-compose.yml'
+        id: commit
+        continue-on-error: true
+        run: |
+          git config --local user.email "deployment-bot@users.noreply.github.com"
+          git config --local user.name "deployment-bot"
+          git add .
+          git commit -m "[deployment] Promoting $SLUG to ${{ github.sha }}"
+
+      - name: 'Push "bmw-nsk-states"'
+        if: steps.commit.outcome == 'success'
+        uses: ad-m/github-push-action@master
+        with:
+          repository: digital-blade/bmw-nsk-states
+          github_token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
+          branch: ${{ env.SLUG }}
+
+      - name: 'Output'
+        id: output
+        run: |
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "api-url=$API_URL" >> $GITHUB_OUTPUT
+          echo "admin-url=$ADMIN_URL" >> $GITHUB_OUTPUT
+          echo "public-url=$PUBLIC_URL" >> $GITHUB_OUTPUT
+
+          echo "::group::Slug"
+          echo $SLUG
+          echo "::endgroup::"
+
+          echo "::group::API URL"
+          echo $API_URL
+          echo "::endgroup::"
+
+          echo "::group::Admin URL"
+          echo $ADMIN_URL
+          echo "::endgroup::"
+
+          echo "::group::Public URL"
+          echo $PUBLIC_URL
+          echo "::endgroup::"
+
+  create-stack:
+    name: 'Create stack'
+    needs: [update-states-repository]
+    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    runs-on: self-hosted
+    steps:
+      - name: 'Curl Portainer'
+        run: |
+          curl -XPOST \
+            -H 'X-API-Key: ${{ secrets.PORTAINER_TOKEN }}' \
+            -H "Content-type: application/json" \
+            -d '{
+                  "Name": "bmw-club-${{ needs.update-states-repository.outputs.slug }}",
+                  "RepositoryURL": "https://github.com/digital-blade/bmw-nsk-states",
+                  "RepositoryReferenceName": "refs/heads/${{ needs.update-states-repository.outputs.slug }}",
+                  "ComposeFile": "docker-compose.yml",
+                  "RepositoryAuthentication": true,
+                  "RepositoryUsername": "evist0",
+                  "RepositoryPassword": "${{ secrets.STATES_REPOSITORY_TOKEN }}",
+                  "AutoUpdate": {
+                    "Interval": "2m"
+                  }
+                }' -fSsi 'https://portainer.bmw-nsk.ru/api/stacks?type=2&method=repository&endpointId=2'
