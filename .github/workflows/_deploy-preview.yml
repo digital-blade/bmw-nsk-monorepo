@@ -41,8 +41,12 @@ jobs:
 
           echo "PUBLIC_URL=$SLUG.dyn.bmw-nsk.ru" >> $GITHUB_ENV
 
-      - name: 'Clone "bmw-nsk-states"'
-        run: git clone https://oauth2:${{ secrets.STATES_REPOSITORY_TOKEN }}@github.com/digital-blade/bmw-nsk-states
+      - name: 'Checkout "bmw-nsk-states"'
+        uses: actions/checkout@v3
+        with:
+          repository: digital-blade/bmw-nsk-states
+          token: ${{ secrets.STATES_REPOSITORY_TOKEN }}
+          fetch-depth: 0
 
       - name: 'Checkout branch'
         run: git checkout $SLUG || git checkout -b $SLUG
