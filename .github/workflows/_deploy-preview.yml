@@ -100,7 +100,7 @@ jobs:
   create-stack:
     name: 'Create stack'
     needs: [update-states-repository]
-    if: github.event.action == 'opened' || github.event.action == 'reopened'
+    if: github.event.action != 'synchronize'
     runs-on: self-hosted
     steps:
       - name: 'Curl Portainer'
@@ -120,3 +120,25 @@ jobs:
                     "Interval": "2m"
                   }
                 }' -fSsi 'https://portainer.bmw-nsk.ru/api/stacks?type=2&method=repository&endpointId=2'
+
+      - name: 'Find Comment'
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Public: ${{ needs.update-states-repository.outputs.public-url }}'
+
+      - name: 'Create or update comment'
+        id: notification
+        uses: peter-evans/create-or-update-comment@v2
+        if: github.event.action != 'synchronize'
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## Portainer stack `${{ }}`
+            API: ${{ needs.update-states-repository.outputs.api-url }}
+            Admin: ${{ needs.update-states-repository.outputs.admin-url }}
+            Public: ${{ needs.update-states-repository.outputs.public-url }}
+          edit-mode: replace

@@ -3,12 +3,12 @@ run-name: 'Cleanup pull request: "${{ github.head_ref }}" by "${{ github.actor }
 
 on:
   pull_request:
-    branches: [ develop ]
-    types: [ closed ]
+    branches: [develop]
+    types: [closed]
 
 jobs:
   cleanup-preview:
-    name: 'Cleanup preview'
+    name: 'Delete stack'
     runs-on: self-hosted
     steps:
       - name: 'Debug'
